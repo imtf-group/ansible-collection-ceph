@@ -1,0 +1,5 @@
+---
+all_devices: false
+osd_devices:
+  - sdb
+ceph_version: squid

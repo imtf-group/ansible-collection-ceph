@@ -1,0 +1,78 @@
+---
+- name: download key for Ceph repo
+  get_url:
+    url: https://download.ceph.com/keys/release.asc
+    dest: /etc/apt/trusted.gpg.d/ceph.asc
+
+- name: Add ceph repository
+  apt_repository:
+    repo: "deb https://download.ceph.com/debian-{{ ceph_version }}/ {{ ansible_distribution_release }} main"
+    state: present
+    filename: ceph
+  register: ceph_repo
+
+- name: install ceph from packages
+  apt:
+    update_cache: "{{ ceph_repo is changed }}"
+    name: ceph
+    state: present
+
+- name: fix rights
+  file:
+    path: /etc/ceph
+    state: directory
+    owner: ceph
+    group: ceph
+
+- name: check if needed conf files are present
+  stat:
+    path: "/tmp/{{ item|basename }}"
+  register: st_conf_files
+  delegate_to: localhost
+  become: false
+  loop:
+    - /etc/ceph/ceph.conf
+    - /etc/ceph/ceph.client.admin.keyring
+
+- name: copy files to all the nodes
+  copy:
+    src: "/tmp/{{ item.item|basename }}"
+    dest: "{{ item.item }}"
+    owner: ceph
+    group: ceph
+  when: item.stat.exists
+  loop: "{{ st_conf_files.results }}"
+
+- name: create mgr directory
+  file:
+    path: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname }}"
+    state: directory
+    owner: ceph
+    group: ceph
+    recurse: true
+
+- name: check if mgr user exists
+  command: "ceph auth get mgr.{{ inventory_hostname }}"
+  failed_when: false
+  changed_when: false
+  register: mgr_user
+
+- name: create user for mgr service
+  command: "ceph auth get-or-create mgr.{{ inventory_hostname }} mon 'allow profile mgr' osd 'allow *' mds 'allow *'"
+  become_user: ceph
+  become: true
+  register: auth_mgr
+  changed_when: mgr_user.rc != 0
+
+- name: create keyring for mgr
+  template:
+    src: keyring.j2
+    dest: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname }}/keyring"
+    owner: ceph
+    group: ceph
+
+- name: start mgr daemon
+  systemd:
+    name: "ceph-mgr@{{ inventory_hostname }}"
+    enabled: true
+    state: started

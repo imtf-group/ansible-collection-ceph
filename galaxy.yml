@@ -1,0 +1,9 @@
+namespace: imtf
+name: ceph
+version: 1.0.0
+readme: README.md
+authors:
+  - TechOps
+description: Collection for Ceph automation
+license: GPL
+dependencies: {}

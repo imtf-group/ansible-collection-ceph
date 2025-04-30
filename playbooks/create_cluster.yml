@@ -1,0 +1,23 @@
+- hosts: ceph_mon
+  any_errors_fatal: true
+  roles:
+    - bootstrap_cluster
+    - create_mon
+    - create_mgr
+
+- hosts: ceph_osd
+  any_errors_fatal: true
+  roles:
+    - create_mds
+    - create_osd
+
+- hosts: ceph_mon
+  any_errors_fatal: true
+  roles:
+    - create_filesystem
+    - create_rbd
+
+- hosts: ceph_rgw
+  any_errors_fatal: true
+  roles:
+    - create_rgw
