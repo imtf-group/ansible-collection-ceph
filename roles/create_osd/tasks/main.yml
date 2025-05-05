@@ -49,15 +49,24 @@
   changed_when: false
   register: block_dev
 
+- name: init disk list
+  set_fact:
+    new_devices: []
+
 - name: get new disk name
   set_fact:
-    new_devices: "{{ new_devices|d([]) + [item] }}"
+    new_devices: "{{ new_devices + [item] }}"
   when:
     - all_devices|bool or item in osd_devices
     - item in ansible_devices
     - not ansible_devices[item].partitions
     - item != 'sr0'
   loop: "{{ block_dev.stdout_lines }}"
+
+- name: ends if no disks found
+  fail:
+    msg: "No eligible disks has been found. Ensure 'osd_devices' is set and there are disks attached to the server"
+  when: new_devices|length == 0
 
 - name: create OSD
   command: "ceph-volume lvm create --data /dev/{{ item }}"
