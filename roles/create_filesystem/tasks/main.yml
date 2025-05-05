@@ -50,7 +50,7 @@
   register: ceph_vol
 
 - name: create pools
-  command: "ceph osd pool create {{ item }} 8 8"
+  command: "ceph osd pool create {{ item }} {{ pg_num }} {{ pg_num }}"
   run_once: true
   when: "volume_name not in ceph_vol.stdout"
   loop:

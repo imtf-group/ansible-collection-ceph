@@ -1,4 +1,4 @@
 ---
 pool_name: cephrbd
 ceph_version: squid
-pg_num: 64
+pg_num: 8

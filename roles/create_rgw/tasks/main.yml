@@ -72,22 +72,22 @@
     group: ceph
 
 - name: create default pools
-  command: "ceph osd pool create {{ item.name }} {{ item.pg_num }} --yes-i-really-mean-it"
+  command: "ceph osd pool create {{ item }} {{ pg_num }} --yes-i-really-mean-it"
   register: rgw_pools
   changed_when: "'already exists' not in rgw_pools.stderr"
   become_user: ceph
   become: true
   loop:
-    - { name: default.rgw.buckets.data, pg_num: 32 }
-    - { name: default.rgw.buckets.index, pg_num: 32 }
-    - { name: default.rgw.buckets.non-ec, pg_num: 32 }
-    - { name: default.rgw.control, pg_num: 8 }
-    - { name: default.rgw.meta, pg_num: 8 }
-    - { name: default.rgw.log, pg_num: 8 }
-    - { name: .rgw.root, pg_num: 8 }
+    - default.rgw.buckets.data
+    - default.rgw.buckets.index
+    - default.rgw.buckets.non-ec
+    - default.rgw.control
+    - default.rgw.meta
+    - default.rgw.log
+    - .rgw.root
 
 - name: get pool application
-  command: "ceph osd pool application get {{ item.item.name }}"
+  command: "ceph osd pool application get {{ item.item }}"
   register: rgw_app
   changed_when: false
   become_user: ceph
@@ -95,7 +95,7 @@
   loop: "{{ rgw_pools.results }}"
 
 - name: set pool application
-  command: "ceph osd pool application enable {{ item.item.item.name }} rgw"
+  command: "ceph osd pool application enable {{ item.item.item }} rgw"
   when: "'rgw' not in item.stdout"
   become_user: ceph
   become: true
