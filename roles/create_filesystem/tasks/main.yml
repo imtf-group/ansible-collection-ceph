@@ -57,6 +57,28 @@
     - "{{ volume_name }}_data"
     - "{{ volume_name }}_metadata"
 
+- name: get data pool bulk config
+  command: "ceph osd pool get {{ volume_name }}_data bulk"
+  run_once: true
+  changed_when: false
+  register: cmd_bulk
+
+- name: set data pool as bulk
+  command: "ceph osd pool set {{ volume_name }}_data bulk true"
+  run_once: true
+  when: "cmd_bulk.stdout == 'bulk: false'"
+
+- name: get data pool pg_autoscale_mode config
+  command: "ceph osd pool get {{ volume_name }}_data pg_autoscale_mode"
+  run_once: true
+  changed_when: false
+  register: cmd_autoscale
+
+- name: set data pool as autoscaled
+  command: "ceph osd pool set {{ volume_name }}_data pg_autoscale_mode on"
+  run_once: true
+  when: "cmd_autoscale.stdout == 'pg_autoscale_mode: off'"
+
 - name: create FS
   command: "ceph fs new {{ volume_name }} {{ volume_name }}_metadata {{ volume_name }}_data"
   run_once: true
