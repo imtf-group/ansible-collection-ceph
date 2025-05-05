@@ -1,4 +1,4 @@
 ---
 public_network: 10.0.0.0/24
 ceph_version: squid
-mon_max_pg_per_osd: 300
+mon_max_pg_per_osd: 250

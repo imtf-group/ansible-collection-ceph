@@ -86,6 +86,17 @@
     - default.rgw.log
     - .rgw.root
 
+- name: get data bucket bulk config
+  command: "ceph osd pool get default.rgw.buckets.data bulk"
+  run_once: true
+  changed_when: false
+  register: cmd_bulk
+
+- name: set data bucket as bulk
+  command: "ceph osd pool set default.rgw.buckets.data bulk true"
+  run_once: true
+  when: "cmd_bulk.stdout == 'bulk: false'"
+
 - name: get pool application
   command: "ceph osd pool application get {{ item.item }}"
   register: rgw_app

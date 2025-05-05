@@ -54,6 +54,17 @@
   run_once: true
   when: "pool_name not in ceph_rbd.stdout"
 
+- name: get rbdpool bulk config
+  command: "ceph osd pool get {{ pool_name }} bulk"
+  run_once: true
+  changed_when: false
+  register: cmd_bulk
+
+- name: set rbdpool as bulk
+  command: "ceph osd pool set {{ pool_name }} bulk true"
+  run_once: true
+  when: "cmd_bulk.stdout == 'bulk: false'"
+
 - name: get pool application
   command: "ceph osd pool application get {{ pool_name }}"
   run_once: true
